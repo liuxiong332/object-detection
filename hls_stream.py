@@ -34,14 +34,14 @@ hls_command = ['ffmpeg',
                '-y',
                '-f', 'rawvideo',
                '-pixel_format', 'bgr24',
-               '-video_size', "{}x{}".format(1920, 1080),  # 图片分辨率
-               '-framerate', str(30),  # 视频帧率
+               '-video_size', "{}x{}".format(640, 1280),  # 图片分辨率
+               '-framerate', str(25),  # 视频帧率
                '-i', '-',
                '-c:v', 'libx264',
-               '-pixel_format', 'yuv420p',
+               '-pix_fmt', 'yuv420p',
                '-preset', 'ultrafast',
                '-f', 'hls',
-               '-hls_time', '10',
+               '-hls_time', '5',
                "videos/live.m3u8"]
 
 
@@ -110,10 +110,20 @@ def run():
 if __name__ == '__main__':
     # run()
     p = sp.Popen(hls_command, stdin=sp.PIPE)
-    vs = VideoStream(src="videos/XQEO7341.mov").start()
+    cap = cv2.VideoCapture("videos/MP4_20200326_083722_PHOTOMOVIE.mp4")
 
+    count = 0
     while True:
-      frame = vs.read()
-      if frame is None:
-          break
-      p.stdin.buffer.write(frame.astype('int8').tostring())
+        ret, frame = cap.read()
+
+        if not ret:
+            break
+    
+        count += 1
+        
+        p.stdin.write(frame.astype('int8').tostring())
+    p.stdin.flush()
+    p.stdin.close()
+
+    p.wait()
+    print("frame count ", count)
