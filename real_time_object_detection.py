@@ -5,6 +5,7 @@ import argparse
 import imutils
 import time
 import cv2
+from writer.hls_generator import HlsGenerator
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -32,9 +33,15 @@ net = cv2.dnn.readNetFromCaffe(args["prototxt"], args["model"])
 # initialize the video stream, allow the cammera sensor to warmup,
 # and initialize the FPS counter
 print("[INFO] starting video stream...")
-vs = VideoStream(src="videos/XQEO7341.mov").start()
+capture = cv2.VideoCapture("videos/MP4_20200326_083722_PHOTOMOVIE.mp4")
 time.sleep(2.0)
 fps = FPS().start()
+
+width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH) / 2)
+height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) / 2)
+hls_generator = HlsGenerator(width, height)
+
+print("The video width and height is ", width, height)
 
 def put_rect(detections, frame):
   # loop over the detections
@@ -66,11 +73,11 @@ def put_rect(detections, frame):
 while True:
   # grab the frame from the threaded video stream and resize it
   # to have a maximum width of 400 pixels
-  frame = vs.read()
-  if frame is None:
+  ret, frame = capture.read()
+  if not ret:
     break
 
-  frame = imutils.resize(frame, width=400)
+  frame = imutils.resize(frame, width=width, height=height)
 
   # grab the frame dimensions and convert it to a blob
   (h, w) = frame.shape[:2]
@@ -82,12 +89,13 @@ while True:
   detections = net.forward()
   
   put_rect(detections, frame)
-  cv2.imshow("Frame", frame)
-  key = cv2.waitKey(1) & 0xFF
+  hls_generator.write_frame(frame)
+  # cv2.imshow("Frame", frame)
+  # key = cv2.waitKey(1) & 0xFF
 
   # if the `q` key was pressed, break from the loop
-  if key == ord("q"):
-    break
+  # if key == ord("q"):
+  #   break
 
   # update the FPS counter
   fps.update()
@@ -99,4 +107,5 @@ print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
  
 # do a bit of cleanup
 cv2.destroyAllWindows()
-vs.stop()
+# vs.stop()
+hls_generator.join()
