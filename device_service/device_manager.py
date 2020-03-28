@@ -3,8 +3,8 @@ from model import object_detection
 from multiprocessing import Process, Pipe
 
 
-def device_process(conn):
-    object_detection.ModelRunner(conn).run()
+def device_process(conn, device_id):
+    object_detection.ModelRunner(conn, device_id).run()
 
 
 class DeviceManager:
@@ -33,7 +33,7 @@ class DeviceManager:
 
     def start_task(self, device_id):
         parent_conn, child_conn = Pipe()
-        p = Process(target=device_process, args=(child_conn, ))
+        p = Process(target=device_process, args=(child_conn, device_id))
         p.start()
         self.tasks[device_id] = p
         self.conns[device_id] = parent_conn

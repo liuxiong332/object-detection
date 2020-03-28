@@ -20,9 +20,12 @@ def read_config():
         config = json.load(fp)
         print("Get config:", config)
         video_path = config["simulateVideo"]
-        video_path = os.path.normpath(os.path.join(ROOT_DIR, video_path))
+        video_path = os.path.abspath(os.path.join(ROOT_DIR, video_path))
+
+        output_dir = config["outputDir"]
+        output_dir = os.path.abspath(os.path.join(ROOT_DIR, output_dir))
         print("Get Video path", video_path)
-        return {"video_path": video_path}
+        return {"video_path": video_path, "output_dir": output_dir}
 
 
 # initialize the list of class labels MobileNet SSD was trained to
@@ -35,13 +38,14 @@ COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 
 class ModelRunner:
-    def __init__(self, conn):
+    def __init__(self, conn, key):
         # load our serialized model from disk
         proto_path = os.path.join(ROOT_DIR, "MobileNetSSD_deploy.prototxt.txt")
         model_path = os.path.join(ROOT_DIR, "MobileNetSSD_deploy.caffemodel")
         print("[INFO] loading model...", proto_path, model_path)
         self.net = cv2.dnn.readNetFromCaffe(proto_path, model_path)
         self.conn = conn
+        self.key = key
 
     def read_from_cap(self, capture):
         ret, frame = capture.read()
@@ -66,7 +70,9 @@ class ModelRunner:
         height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) / 2)
         print("The video width and height is ", width, height)
 
-        hls_generator = HlsGenerator(width, height)
+        outvideo_path = os.path.join(config["output_dir"], self.key)
+        print("The video will output to ", outvideo_path)
+        hls_generator = HlsGenerator(width, height, outvideo_path)
 
         # loop over the frames from the video stream
         while True:

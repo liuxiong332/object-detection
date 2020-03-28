@@ -1,3 +1,4 @@
 videos
 .pyc
 __pycache__
+nginx/data

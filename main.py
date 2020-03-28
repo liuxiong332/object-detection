@@ -17,13 +17,17 @@ class ServerHTTP(BaseHTTPRequestHandler):
         if search_res is not None:
             device_manager.add_device(search_res.group(1))
             self.send_response(200, "ok")
-            return self.wfile.write(b"ok")
+            self.end_headers()
+            self.wfile.write(b"ok")
+            return
 
         search_res = re.search(r"/device/del\?deviceId=(\d+)", self.path)
         if search_res is not None:
             device_manager.del_device(search_res.group(1))
             self.send_response(200, "ok")
-            return self.wfile.write(b"ok")
+            self.end_headers()
+            self.wfile.write(b"ok")
+            return
 
         return self.send_response(500, "unknown command")
 

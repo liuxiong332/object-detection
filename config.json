@@ -1,3 +1,4 @@
 {
-  "simulateVideo": "videos/XQEO7341.mov"
+  "simulateVideo": "videos/XQEO7341.mov",
+  "outputDir": "nginx/data/videos"
 }
