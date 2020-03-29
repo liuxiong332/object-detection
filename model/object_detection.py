@@ -65,7 +65,9 @@ class ModelRunner:
         # initialize the video stream, allow the cammera sensor to warmup,
         # and initialize the FPS counter
         print("[INFO] starting video stream...")
-        capture = cv2.VideoCapture("videos/XQEO7341.mov")
+        capture = cv2.VideoCapture(config["video_path"])
+        if not capture.isOpened():
+            raise Exception("Video can not open.")
         width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH) / 2)
         height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) / 2)
         print("The video width and height is ", width, height)
